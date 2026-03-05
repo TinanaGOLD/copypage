@@ -2,9 +2,6 @@
 
 &gt; ✨ 让重复的话术一键复制，让沟通更轻松～
 
-![GitHub stars](https://img.shields.io/github/stars/tinanagold/copypage?style=social&color=ff6b9d)
-![GitHub forks](https://img.shields.io/github/forks/tinanagold/copypage?style=social&color=ff6b9d)
-![License](https://img.shields.io/badge/license-MIT-ff6b9d)
 
 ---
 
