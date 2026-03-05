@@ -1,0 +1,1342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>话术助手 - 快速复制工具</title>
+    <style>
+        /* ==================== 基础样式重置 ==================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #fff5f7;
+            min-height: 100vh;
+            padding: 20px;
+            color: #5a5a5a;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        /* ==================== 主容器 ==================== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(255, 182, 193, 0.15);
+        }
+
+        /* ==================== 标题区域 ==================== */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ff6b9d;
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        /* ==================== 1. 输入话术区域 ==================== */
+        .input-section {
+            background-color: #fff0f3;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #ffd1dc;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        #phraseInput {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #ffb6c1;
+            border-radius: 12px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+
+        #phraseInput:focus {
+            border-color: #ff6b9d;
+            box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.1);
+        }
+
+        #phraseInput::placeholder {
+            color: #ccc;
+        }
+
+        .btn-add {
+            padding: 12px 24px;
+            background-color: #ff6b9d;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .btn-add:hover {
+            background-color: #ff5a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .btn-add:active {
+            transform: translateY(0);
+        }
+
+        /* ==================== 2. 分组板块 ==================== */
+        .groups-section {
+            margin-bottom: 25px;
+        }
+
+        .groups-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .groups-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* 分组标签样式 */
+        .group-tag {
+            padding: 8px 16px;
+            background-color: #fff0f3;
+            border: 2px solid #ffd1dc;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            color: #666;
+            user-select: none;
+            position: relative;
+        }
+
+        .group-tag:hover {
+            background-color: #ffe4e9;
+            transform: translateY(-1px);
+        }
+
+        .group-tag.active {
+            background-color: #ff6b9d;
+            color: white;
+            border-color: #ff6b9d;
+            box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
+        }
+
+        /* 系统分组不可编辑 */
+        .group-tag.system {
+            cursor: default;
+        }
+
+        .group-tag.system:hover {
+            transform: none;
+        }
+
+        .btn-add-group {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px dashed #ff6b9d;
+            color: #ff6b9d;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-left: 5px;
+        }
+
+        .btn-add-group:hover {
+            background-color: #ff6b9d;
+            color: white;
+            border-style: solid;
+            transform: rotate(90deg);
+        }
+
+        /* ==================== 3. 话术列表区域 ==================== */
+        .phrases-section {
+            min-height: 200px;
+        }
+
+        .phrases-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 话术卡片 - 使用Grid布局确保结构稳定 */
+        .phrase-card {
+            background-color: #fff;
+            border: 2px solid #ffe4e9;
+            border-radius: 16px;
+            padding: 16px 20px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phrase-card:hover {
+            border-color: #ffb6c1;
+            box-shadow: 0 4px 12px rgba(255, 182, 193, 0.15);
+        }
+
+        /* 话术内容区域 */
+        .phrase-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0; /* 确保flex子项可以收缩 */
+        }
+
+        .phrase-text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #444;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .phrase-group-label {
+            font-size: 12px;
+            color: #ff6b9d;
+            background-color: #fff0f3;
+            padding: 4px 10px;
+            border-radius: 12px;
+            align-self: flex-start;
+            white-space: nowrap;
+        }
+
+        /* 复制按钮 - 固定在右侧 */
+        .btn-copy {
+            padding: 8px 16px;
+            background-color: #fff0f3;
+            color: #ff6b9d;
+            border: 2px solid #ffb6c1;
+            border-radius: 12px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: fit-content;
+            align-self: center;
+        }
+
+        .btn-copy:hover {
+            background-color: #ff6b9d;
+            color: white;
+            border-color: #ff6b9d;
+        }
+
+        .btn-copy.copied {
+            background-color: #90ee90;
+            color: #2d5a2d;
+            border-color: #90ee90;
+        }
+
+        /* ==================== 初始化引导页面 ==================== */
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 20px;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-title {
+            font-size: 24px;
+            color: #ff6b9d;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .welcome-desc {
+            color: #999;
+            font-size: 15px;
+            line-height: 1.8;
+            max-width: 400px;
+            margin: 0 auto 30px;
+        }
+
+        .welcome-features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .feature-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #fff0f3;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* ==================== 弹窗样式 ==================== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 24px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-title {
+            font-size: 20px;
+            color: #ff6b9d;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .modal-content {
+            color: #666;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #ffd1dc;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .modal-input:focus {
+            border-color: #ff6b9d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .modal-btn-primary {
+            background-color: #ff6b9d;
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            background-color: #ff5a8a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 107, 157, 0.3);
+        }
+
+        .modal-btn-secondary {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .modal-btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+
+        .modal-btn-danger {
+            background-color: #ffe4e9;
+            color: #ff4757;
+        }
+
+        .modal-btn-danger:hover {
+            background-color: #ffd1dc;
+            transform: translateY(-2px);
+        }
+
+        /* 删除确认弹窗特殊样式 */
+        .delete-confirm-icon {
+            font-size: 48px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .delete-confirm-text {
+            font-size: 16px;
+            color: #444;
+            text-align: center;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .delete-confirm-hint {
+            font-size: 13px;
+            color: #999;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        /* 操作按钮组 */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid #ffd1dc;
+            background-color: #fff;
+            color: #666;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background-color: #fff0f3;
+            border-color: #ff6b9d;
+            color: #ff6b9d;
+        }
+
+        /* 移动到分组的下拉选择 */
+        .group-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ffd1dc;
+            border-radius: 12px;
+            font-size: 15px;
+            margin-bottom: 15px;
+            outline: none;
+            background-color: white;
+        }
+
+        .group-select:focus {
+            border-color: #ff6b9d;
+        }
+
+        /* ==================== 提示消息 ==================== */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* ==================== 响应式设计 ==================== */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .input-wrapper {
+                flex-direction: column;
+            }
+
+            #phraseInput {
+                width: 100%;
+            }
+
+            .btn-add {
+                width: 100%;
+            }
+
+            /* 手机端话术卡片保持左右布局 */
+            .phrase-card {
+                padding: 12px 16px;
+                gap: 10px;
+            }
+
+            .phrase-content {
+                gap: 6px;
+            }
+
+            .phrase-text {
+                font-size: 14px;
+                line-height: 1.5;
+            }
+
+            .btn-copy {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .welcome-features {
+                gap: 20px;
+            }
+
+            .group-tag {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+
+        /* 超小屏幕适配 */
+        @media (max-width: 360px) {
+            .container {
+                padding: 15px;
+            }
+
+            .phrase-card {
+                padding: 10px 12px;
+            }
+
+            .btn-copy {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 主容器 -->
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>🌸 话术助手</h1>
+            <p>快速复制常用话术，提升沟通效率</p>
+        </div>
+
+        <!-- 1. 输入话术区域 -->
+        <div class="input-section">
+            <div class="input-wrapper">
+                <input type="text" id="phraseInput" placeholder="输入要保存的话术..." maxlength="500">
+                <button class="btn-add" onclick="addPhrase()">➕ 添加话术</button>
+            </div>
+        </div>
+
+        <!-- 2. 分组板块 -->
+        <div class="groups-section">
+            <div class="groups-header">
+                <span class="section-title">📂 分组管理</span>
+            </div>
+            <div class="groups-list" id="groupsList">
+                <button class="btn-add-group" onclick="showAddGroupModal()" title="添加分组">+</button>
+            </div>
+        </div>
+
+        <!-- 3. 话术列表区域 -->
+        <div class="phrases-section" id="phrasesSection">
+            <!-- 动态内容 -->
+        </div>
+    </div>
+
+    <!-- 添加分组弹窗 -->
+    <div class="modal-overlay" id="addGroupModal">
+        <div class="modal">
+            <div class="modal-title">✨ 新建分组</div>
+            <input type="text" class="modal-input" id="groupNameInput" placeholder="请输入分组名称..." maxlength="20">
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('addGroupModal')">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmAddGroup()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑话术弹窗 -->
+    <div class="modal-overlay" id="editPhraseModal">
+        <div class="modal">
+            <div class="modal-title">📝 编辑话术</div>
+            <input type="text" class="modal-input" id="editPhraseInput" placeholder="编辑话术内容...">
+            <div class="action-buttons">
+                <button class="action-btn" onclick="savePhraseEdit()">💾 保存修改</button>
+                <button class="action-btn" onclick="showMoveToGroup()">📂 移动到分组</button>
+                <button class="action-btn" style="color: #ff4757; border-color: #ffb6c1;" onclick="showDeleteConfirm()">🗑️ 删除话术</button>
+                <button class="action-btn" onclick="closeModal('editPhraseModal')" style="margin-top: 10px;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除话术确认弹窗 -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal">
+            <div class="delete-confirm-icon">🗑️</div>
+            <div class="delete-confirm-text">确定要删除这条话术吗？</div>
+            <div class="delete-confirm-hint">删除后将无法恢复，请谨慎操作</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('deleteConfirmModal')">保留</button>
+                <button class="modal-btn modal-btn-danger" onclick="confirmDelete()">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑分组弹窗 -->
+    <div class="modal-overlay" id="editGroupModal">
+        <div class="modal">
+            <div class="modal-title">📂 编辑分组</div>
+            <input type="text" class="modal-input" id="editGroupInput" placeholder="编辑分组名称..." maxlength="20">
+            <div class="action-buttons">
+                <button class="action-btn" onclick="saveGroupEdit()">💾 保存修改</button>
+                <button class="action-btn" style="color: #ff4757; border-color: #ffb6c1;" onclick="showDeleteGroupConfirm()">🗑️ 删除分组</button>
+                <button class="action-btn" onclick="closeModal('editGroupModal')" style="margin-top: 10px;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除分组确认弹窗 -->
+    <div class="modal-overlay" id="deleteGroupConfirmModal">
+        <div class="modal">
+            <div class="delete-confirm-icon">⚠️</div>
+            <div class="delete-confirm-text">确定要删除这个分组吗？</div>
+            <div class="delete-confirm-hint" id="deleteGroupHint">该分组下的话术将自动移动到"未分组"</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('deleteGroupConfirmModal')">保留</button>
+                <button class="modal-btn modal-btn-danger" onclick="confirmDeleteGroup()">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移动到分组选择弹窗 -->
+    <div class="modal-overlay" id="moveGroupModal">
+        <div class="modal">
+            <div class="modal-title">📂 选择分组</div>
+            <select class="group-select" id="targetGroupSelect"></select>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal('moveGroupModal')">取消</button>
+                <button class="modal-btn modal-btn-primary" onclick="confirmMoveToGroup()">确认移动</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 提示消息 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ==================== 数据存储 ====================
+        let phrases = [];
+        let groups = [];
+        let currentGroup = '全部';
+        let editingPhraseId = null;
+        let editingGroupName = null;
+        let isFirstUse = false;
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDataFromStorage();
+            
+            // 绑定回车键事件
+            document.getElementById('phraseInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') addPhrase();
+            });
+
+            document.getElementById('editPhraseInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') savePhraseEdit();
+            });
+
+            document.getElementById('groupNameInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') confirmAddGroup();
+            });
+
+            document.getElementById('editGroupInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') saveGroupEdit();
+            });
+        });
+
+        // ==================== localStorage 数据管理 ====================
+        
+        function loadDataFromStorage() {
+            const savedPhrases = localStorage.getItem('phrases');
+            const savedGroups = localStorage.getItem('groups');
+            
+            if (savedPhrases && savedGroups) {
+                phrases = JSON.parse(savedPhrases);
+                groups = JSON.parse(savedGroups);
+                isFirstUse = false;
+            } else {
+                isFirstUse = true;
+                phrases = [];
+                groups = ['全部', '未分组'];
+                saveData();
+            }
+            
+            renderGroups();
+            renderPhrases();
+        }
+
+        function saveData() {
+            localStorage.setItem('phrases', JSON.stringify(phrases));
+            localStorage.setItem('groups', JSON.stringify(groups));
+        }
+
+        // ==================== 话术功能 ====================
+        
+        function addPhrase() {
+            const input = document.getElementById('phraseInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                showToast('请输入话术内容哦～');
+                input.focus();
+                return;
+            }
+
+            const newPhrase = {
+                id: Date.now(),
+                text: text,
+                group: '未分组',
+                createdAt: new Date().toLocaleString()
+            };
+
+            phrases.unshift(newPhrase);
+            saveData();
+            input.value = '';
+            
+            if (isFirstUse) isFirstUse = false;
+            
+            if (currentGroup !== '全部' && currentGroup !== '未分组') {
+                currentGroup = '未分组';
+                renderGroups();
+            }
+            
+            renderPhrases();
+            showToast('✅ 话术添加成功！');
+        }
+
+        function renderPhrases() {
+            const container = document.getElementById('phrasesSection');
+            
+            if (isFirstUse || (phrases.length === 0 && !localStorage.getItem('phrases'))) {
+                container.innerHTML = `
+                    <div class="welcome-screen">
+                        <div class="welcome-icon">🌸</div>
+                        <div class="welcome-title">欢迎使用话术助手！</div>
+                        <div class="welcome-desc">
+                            这是一个帮你快速管理和复制常用话术的工具。<br>
+                            非常适合客服、运营等需要频繁沟通的工作场景。
+                        </div>
+                        <div class="welcome-features">
+                            <div class="feature-item">
+                                <div class="feature-icon">📝</div>
+                                <span>添加话术</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📂</div>
+                                <span>分组管理</span>
+                            </div>
+                            <div class="feature-item">
+                                <div class="feature-icon">📋</div>
+                                <span>一键复制</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            let filteredPhrases = phrases;
+            if (currentGroup !== '全部') {
+                filteredPhrases = phrases.filter(p => p.group === currentGroup);
+            }
+
+            if (filteredPhrases.length === 0) {
+                container.innerHTML = `
+                    <div class="phrases-list">
+                        <div class="welcome-screen" style="padding: 40px 20px;">
+                            <div class="welcome-icon" style="font-size: 48px; animation: none;">📝</div>
+                            <div style="color: #999; font-size: 15px;">
+                                ${currentGroup === '全部' ? '还没有话术哦，快添加一个吧～' : '该分组下还没有话术～'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="phrases-list">
+                    ${filteredPhrases.map(phrase => `
+                        <div class="phrase-card" 
+                             data-phrase-id="${phrase.id}"
+                             data-long-press="false">
+                            <div class="phrase-content">
+                                <span class="phrase-text">${escapeHtml(phrase.text)}</span>
+                                ${currentGroup === '全部' ? `<span class="phrase-group-label">${phrase.group}</span>` : ''}
+                            </div>
+                            <button class="btn-copy" onclick="copyPhrase('${escapeHtml(phrase.text)}', this); event.stopPropagation();">
+                                📋 复制
+                            </button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            // 绑定移动端触摸事件
+            bindTouchEvents();
+        }
+
+        async function copyPhrase(text, btnElement) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '✅ 已复制';
+                btnElement.classList.add('copied');
+                showToast('复制成功！');
+                
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast('复制成功！');
+            }
+        }
+
+        // ==================== 移动端触摸事件绑定 ====================
+        
+        function bindTouchEvents() {
+            // 绑定话术卡片的长按事件
+            const phraseCards = document.querySelectorAll('.phrase-card');
+            phraseCards.forEach(card => {
+                let touchTimer = null;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let isLongPress = false;
+
+                card.addEventListener('touchstart', function(e) {
+                    if (e.target.classList.contains('btn-copy')) return;
+                    
+                    isLongPress = false;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    
+                    touchTimer = setTimeout(() => {
+                        isLongPress = true;
+                        this.setAttribute('data-long-press', 'true');
+                        const phraseId = parseInt(this.getAttribute('data-phrase-id'));
+                        openEditModal(phraseId);
+                    }, 600); // 600ms 触发长按
+                }, { passive: true });
+
+                card.addEventListener('touchmove', function(e) {
+                    if (!touchTimer) return;
+                    
+                    const touchX = e.touches[0].clientX;
+                    const touchY = e.touches[0].clientY;
+                    const deltaX = Math.abs(touchX - touchStartX);
+                    const deltaY = Math.abs(touchY - touchStartY);
+                    
+                    // 如果移动超过10px，取消长按
+                    if (deltaX > 10 || deltaY > 10) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                }, { passive: true });
+
+                card.addEventListener('touchend', function(e) {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                    
+                    // 如果是长按触发的，阻止后续的点击事件
+                    if (isLongPress) {
+                        e.preventDefault();
+                        this.setAttribute('data-long-press', 'false');
+                    }
+                });
+
+                // 双击支持（快速点击两次）
+                let lastTap = 0;
+                card.addEventListener('touchend', function(e) {
+                    if (e.target.classList.contains('btn-copy')) return;
+                    if (isLongPress) return;
+                    
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    
+                    if (tapLength < 300 && tapLength > 0) {
+                        // 双击检测
+                        e.preventDefault();
+                        const phraseId = parseInt(this.getAttribute('data-phrase-id'));
+                        openEditModal(phraseId);
+                    }
+                    
+                    lastTap = currentTime;
+                });
+            });
+        }
+
+        // ==================== 分组功能 ====================
+        
+        function renderGroups() {
+            const container = document.getElementById('groupsList');
+            const addBtn = container.querySelector('.btn-add-group');
+            
+            const oldTags = container.querySelectorAll('.group-tag');
+            oldTags.forEach(tag => tag.remove());
+            
+            const groupsHtml = groups.map(group => {
+                const isSystemGroup = (group === '全部' || group === '未分组');
+                const className = `group-tag ${group === currentGroup ? 'active' : ''} ${isSystemGroup ? 'system' : ''}`;
+                
+                return `
+                    <div class="${className}" 
+                         data-group-name="${group}"
+                         data-system="${isSystemGroup}">
+                        ${group}
+                    </div>
+                `;
+            }).join('');
+            
+            addBtn.insertAdjacentHTML('beforebegin', groupsHtml);
+            
+            // 绑定分组点击和触摸事件
+            bindGroupEvents();
+        }
+
+        // 绑定分组事件（点击、双击、长按）
+        function bindGroupEvents() {
+            const groupTags = document.querySelectorAll('.group-tag');
+            
+            groupTags.forEach(tag => {
+                const groupName = tag.getAttribute('data-group-name');
+                const isSystem = tag.getAttribute('data-system') === 'true';
+                
+                let touchTimer = null;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let isLongPress = false;
+                let lastTap = 0;
+
+                // 单击选择分组
+                const selectHandler = (e) => {
+                    if (isLongPress) return;
+                    // 检查是否是双击的一部分
+                    const currentTime = new Date().getTime();
+                    if (currentTime - lastTap < 300) return;
+                    
+                    selectGroup(groupName);
+                };
+
+                // 双击或长按编辑
+                const editHandler = (e) => {
+                    if (isSystem) {
+                        showToast('系统分组不能编辑哦～');
+                        return;
+                    }
+                    handleGroupEdit(groupName);
+                };
+
+                // 点击事件
+                tag.addEventListener('click', selectHandler);
+
+                // 双击事件（桌面端）
+                tag.addEventListener('dblclick', (e) => {
+                    e.stopPropagation();
+                    editHandler(e);
+                });
+
+                // 移动端触摸事件
+                tag.addEventListener('touchstart', (e) => {
+                    isLongPress = false;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    
+                    touchTimer = setTimeout(() => {
+                        isLongPress = true;
+                        editHandler(e);
+                    }, 600);
+                }, { passive: true });
+
+                tag.addEventListener('touchmove', (e) => {
+                    if (!touchTimer) return;
+                    const touchX = e.touches[0].clientX;
+                    const touchY = e.touches[0].clientY;
+                    if (Math.abs(touchX - touchStartX) > 10 || Math.abs(touchY - touchStartY) > 10) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                }, { passive: true });
+
+                tag.addEventListener('touchend', (e) => {
+                    if (touchTimer) {
+                        clearTimeout(touchTimer);
+                        touchTimer = null;
+                    }
+                    
+                    // 双击检测
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    
+                    if (tapLength < 300 && tapLength > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        editHandler(e);
+                    } else if (!isLongPress) {
+                        // 延迟执行单击，等待可能的第二次点击
+                        setTimeout(() => {
+                            if (!isLongPress && new Date().getTime() - lastTap >= 300) {
+                                selectGroup(groupName);
+                            }
+                        }, 300);
+                    }
+                    
+                    lastTap = currentTime;
+                });
+            });
+        }
+
+        function selectGroup(groupName) {
+            currentGroup = groupName;
+            renderGroups();
+            renderPhrases();
+        }
+
+        function handleGroupEdit(groupName) {
+            editingGroupName = groupName;
+            document.getElementById('editGroupInput').value = groupName;
+            document.getElementById('editGroupModal').classList.add('show');
+            document.getElementById('editGroupInput').focus();
+        }
+
+        function saveGroupEdit() {
+            const newName = document.getElementById('editGroupInput').value.trim();
+            
+            if (!newName) {
+                showToast('分组名称不能为空哦～');
+                return;
+            }
+            
+            if (newName === editingGroupName) {
+                closeModal('editGroupModal');
+                return;
+            }
+            
+            if (groups.includes(newName)) {
+                showToast('该分组名称已存在～');
+                return;
+            }
+            
+            const index = groups.indexOf(editingGroupName);
+            if (index > -1) {
+                groups[index] = newName;
+                
+                phrases.forEach(phrase => {
+                    if (phrase.group === editingGroupName) {
+                        phrase.group = newName;
+                    }
+                });
+                
+                if (currentGroup === editingGroupName) {
+                    currentGroup = newName;
+                }
+                
+                saveData();
+                renderGroups();
+                renderPhrases();
+                closeModal('editGroupModal');
+                showToast('✅ 分组名称已更新！');
+            }
+        }
+
+        function showDeleteGroupConfirm() {
+            const phrasesInGroup = phrases.filter(p => p.group === editingGroupName);
+            const hintText = phrasesInGroup.length > 0 
+                ? `该分组下有 ${phrasesInGroup.length} 条话术，将自动移动到"未分组"` 
+                : '该分组下没有话术';
+            
+            document.getElementById('deleteGroupHint').textContent = hintText;
+            closeModal('editGroupModal');
+            setTimeout(() => {
+                document.getElementById('deleteGroupConfirmModal').classList.add('show');
+            }, 100);
+        }
+
+        function confirmDeleteGroup() {
+            phrases.forEach(phrase => {
+                if (phrase.group === editingGroupName) {
+                    phrase.group = '未分组';
+                }
+            });
+            
+            groups = groups.filter(g => g !== editingGroupName);
+            
+            if (currentGroup === editingGroupName) {
+                currentGroup = '全部';
+            }
+            
+            saveData();
+            renderGroups();
+            renderPhrases();
+            closeModal('deleteGroupConfirmModal');
+            showToast('🗑️ 分组已删除，话术已移至"未分组"');
+        }
+
+        function showAddGroupModal() {
+            document.getElementById('groupNameInput').value = '';
+            document.getElementById('addGroupModal').classList.add('show');
+            document.getElementById('groupNameInput').focus();
+        }
+
+        function confirmAddGroup() {
+            const input = document.getElementById('groupNameInput');
+            const name = input.value.trim();
+            
+            if (!name) {
+                showToast('请输入分组名称～');
+                return;
+            }
+            
+            if (groups.includes(name)) {
+                showToast('该分组已存在哦～');
+                return;
+            }
+
+            groups.push(name);
+            saveData();
+            closeModal('addGroupModal');
+            renderGroups();
+            showToast(`✅ 分组"${name}"创建成功！`);
+            selectGroup(name);
+        }
+
+        // ==================== 话术编辑功能 ====================
+        
+        function openEditModal(id) {
+            editingPhraseId = id;
+            const phrase = phrases.find(p => p.id === id);
+            
+            if (phrase) {
+                document.getElementById('editPhraseInput').value = phrase.text;
+                document.getElementById('editPhraseModal').classList.add('show');
+            }
+        }
+
+        function savePhraseEdit() {
+            const newText = document.getElementById('editPhraseInput').value.trim();
+            
+            if (!newText) {
+                showToast('话术内容不能为空哦～');
+                return;
+            }
+
+            const phrase = phrases.find(p => p.id === editingPhraseId);
+            if (phrase) {
+                phrase.text = newText;
+                saveData();
+                renderPhrases();
+                closeModal('editPhraseModal');
+                showToast('✅ 修改已保存！');
+            }
+        }
+
+        function showDeleteConfirm() {
+            closeModal('editPhraseModal');
+            setTimeout(() => {
+                document.getElementById('deleteConfirmModal').classList.add('show');
+            }, 100);
+        }
+
+        function confirmDelete() {
+            phrases = phrases.filter(p => p.id !== editingPhraseId);
+            saveData();
+            renderPhrases();
+            closeModal('deleteConfirmModal');
+            showToast('🗑️ 已删除');
+        }
+
+        function showMoveToGroup() {
+            const select = document.getElementById('targetGroupSelect');
+            const currentPhrase = phrases.find(p => p.id === editingPhraseId);
+            
+            const availableGroups = groups.filter(g => g !== '全部' && g !== currentPhrase.group);
+            
+            if (availableGroups.length === 0) {
+                showToast('没有其他可移动的分组哦～');
+                return;
+            }
+
+            select.innerHTML = availableGroups.map(g => 
+                `<option value="${g}">${g}</option>`
+            ).join('');
+            
+            closeModal('editPhraseModal');
+            setTimeout(() => {
+                document.getElementById('moveGroupModal').classList.add('show');
+            }, 100);
+        }
+
+        function confirmMoveToGroup() {
+            const targetGroup = document.getElementById('targetGroupSelect').value;
+            const phrase = phrases.find(p => p.id === editingPhraseId);
+            
+            if (phrase && targetGroup) {
+                phrase.group = targetGroup;
+                saveData();
+                renderPhrases();
+                closeModal('moveGroupModal');
+                showToast(`✅ 已移动到"${targetGroup}"`);
+            }
+        }
+
+        // ==================== 工具函数 ====================
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // 点击弹窗外部关闭
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('show');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
